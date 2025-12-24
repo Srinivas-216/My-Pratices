@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy New Year 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #ffd700;
+            --bg: #050505;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0; left: 0;
+            z-index: 1;
+        }
+
+        .stage {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .year-display {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(5rem, 15vw, 8.5rem);
+            margin: 0;
+            display: flex;
+            gap: 5px;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.3));
+        }
+
+        .digit {
+            display: inline-block;
+            background: linear-gradient(to bottom, #fff, var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: all 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+        }
+
+        .flip {
+            transform: rotateX(180deg) scale(0.5);
+            opacity: 0;
+        }
+
+        .timer-text {
+            letter-spacing: 5px;
+            font-size: 1.1rem;
+            color: var(--gold);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+
+        /* Welcome Note Container */
+        .welcome-note {
+            max-width: 600px;
+            margin-top: 40px;
+            display: none;
+            flex-direction: column;
+            animation: fadeInBlur 1.5s ease-out forwards;
+        }
+
+        @keyframes fadeInBlur {
+            from { transform: translateY(30px); opacity: 0; filter: blur(10px); }
+            to { transform: translateY(0); opacity: 1; filter: blur(0); }
+        }
+
+        .welcome-note h2 {
+            font-family: 'Cinzel', serif;
+            color: var(--gold);
+            margin: 0 0 15px 0;
+            letter-spacing: 4px;
+            font-size: 1.8rem;
+        }
+
+        .welcome-note p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e0e0e0;
+            margin: 0;
+            font-weight: 300;
+        }
+
+        .highlight {
+            color: var(--gold);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="stage">
+        <div id="status" class="timer-text">The journey begins in 3...</div>
+        
+        <div class="year-display">
+            <span class="digit">2</span>
+            <span class="digit">0</span>
+            <span class="digit">2</span>
+            <span id="target-digit" class="digit">5</span>
+        </div>
+
+        <div id="welcomeArea" class="welcome-note">
+            <h2>Welcome to 2026</h2>
+            <p>
+                "A new chapter unfolds today. May 2026 be the year your hardest work turns into your <span class="highlight"> greatest success</span> meets <span class="highlight">opportunity</span>. 
+                I’m looking forward to more late-night talks, shared goals, and the kind of adventures that only we can survive. Cheers to another year of being unstoppable together🎆."
+            </p>
+        </div>
+    </div>
+
+    <audio id="blastSound" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3" preload="auto"></audio>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const targetDigit = document.getElementById('target-digit');
+        const statusText = document.getElementById('status');
+        const welcomeArea = document.getElementById('welcomeArea');
+        const blastSound = document.getElementById('blastSound');
+
+        let particles = [];
+        let countdown = 3;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.color = color;
+                this.velocity = { x: (Math.random() - 0.5) * 18, y: (Math.random() - 0.5) * 18 };
+                this.alpha = 1;
+                this.friction = 0.95;
+                this.gravity = 0.18;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+            update() {
+                this.velocity.x *= this.friction;
+                this.velocity.y *= this.friction;
+                this.velocity.y += this.gravity;
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.alpha -= 0.008;
+            }
+        }
+
+        function triggerCracker(x, y) {
+            const colors = ['#ffd700', '#ffffff', '#ffaa00', '#00d4ff', '#ff0055'];
+            for (let i = 0; i < 120; i++) {
+                particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)]));
+            }
+            blastSound.currentTime = 0;
+            blastSound.play().catch(e => console.log("Audio waiting for interaction"));
+        }
+
+        const timerInterval = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+                statusText.innerText = `The journey begins in ${countdown}...`;
+            } else {
+                clearInterval(timerInterval);
+                startNewYear();
+            }
+        }, 1000);
+
+        function startNewYear() {
+            statusText.style.opacity = "0";
+            targetDigit.classList.add('flip');
+
+            setTimeout(() => {
+                targetDigit.innerText = "6";
+                targetDigit.classList.remove('flip');
+                
+                // Triple Explosion
+                triggerCracker(window.innerWidth / 2, window.innerHeight / 2.5);
+                setTimeout(() => triggerCracker(window.innerWidth * 0.3, window.innerHeight * 0.4), 100);
+                setTimeout(() => triggerCracker(window.innerWidth * 0.7, window.innerHeight * 0.4), 200);
+                
+                welcomeArea.style.display = "flex";
+            }, 800);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.25)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, i) => {
+                if (p.alpha > 0) {
+                    p.update(); p.draw();
+                } else {
+                    particles.splice(i, 1);
+                }
+            });
+        }
+        animate();
+
+        // Unlock audio for mobile/browsers
+        document.body.addEventListener('touchstart', () => blastSound.load(), {once: true});
+        document.body.addEventListener('click', () => blastSound.load(), {once: true});
+    </script>
+</body>
+</html>
